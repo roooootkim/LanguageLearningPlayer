@@ -65,6 +65,8 @@ public class Sami {
 			}
 		}
 		
+		curIndex = mid;
+		
 		return scriptList.get(mid).script;
 	}
 	

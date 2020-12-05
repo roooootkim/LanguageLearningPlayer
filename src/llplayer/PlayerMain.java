@@ -194,7 +194,7 @@ public class PlayerMain {
     }
 
     public PlayerMain() {
-        frame = new JFrame("My First Media Player");
+        frame = new JFrame("Language Learning Player");
         frame.setBounds(100, 100, 1280, 720);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
