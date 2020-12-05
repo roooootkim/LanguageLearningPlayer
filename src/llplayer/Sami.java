@@ -70,6 +70,28 @@ public class Sami {
 		return scriptList.get(mid).script;
 	}
 	
+	public long getPrevTime() {
+		if(curIndex < 2) return scriptList.get(curIndex).sync_start;
+		else {
+			while(curIndex > 0) {
+				curIndex--;
+				if(!scriptList.get(curIndex).script.isEmpty()) break;
+			}
+			return scriptList.get(curIndex).sync_start;
+		}
+	}
+	
+	public long getNextTime() {
+		if(curIndex >= scriptList.size() - 2)return scriptList.get(curIndex).sync_start;
+		else {
+			while(curIndex < scriptList.size() - 2) {
+				curIndex++;
+				if(!scriptList.get(curIndex).script.isEmpty()) break;
+			}
+			return scriptList.get(curIndex).sync_start;
+		}
+	}
+	
 	public void parse() throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filePath));
         String line;
@@ -94,14 +116,14 @@ public class Sami {
             	index = line.indexOf('>');
             	start = Integer.parseInt(line.substring(12, index));
             	if(line.indexOf("&nbsp") != -1) {
-            		text = " ";
+            		text = "";
             		scriptList.add(new Script(start, text));
             		text = "";
             	}
         	}
         	else text = text.concat(line);
         }
-        scriptList.add(new Script(Long.MAX_VALUE, " "));
+        scriptList.add(new Script(Long.MAX_VALUE, ""));
         br.close();
         
         /* print all scripts for test

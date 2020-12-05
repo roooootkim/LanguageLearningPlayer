@@ -169,14 +169,26 @@ public class PlayerMain {
         rewindButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mediaPlayerComponent.mediaPlayer().controls().skipTime(-10000);
+            	if(subtitle[0] == null) 
+                    mediaPlayerComponent.mediaPlayer().controls().skipTime(-10000);
+            	else {
+                	long prevTime = subtitle[0].getPrevTime();
+                	long curTime = mediaPlayerComponent.mediaPlayer().status().time();
+                    mediaPlayerComponent.mediaPlayer().controls().skipTime(prevTime - curTime);
+            	}
             }
         });
 
         skipButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mediaPlayerComponent.mediaPlayer().controls().skipTime(10000);
+            	if(subtitle[0] == null) 
+                    mediaPlayerComponent.mediaPlayer().controls().skipTime(-10000);
+            	else {
+                	long nextTime = subtitle[0].getNextTime();
+                	long curTime = mediaPlayerComponent.mediaPlayer().status().time();
+                    mediaPlayerComponent.mediaPlayer().controls().skipTime(nextTime - curTime);
+            	}
             }
         });
         
