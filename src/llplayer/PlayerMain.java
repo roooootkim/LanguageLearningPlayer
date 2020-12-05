@@ -7,10 +7,13 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,6 +48,9 @@ public class PlayerMain {
 	private String mediaFilePath;
     private String subtitleFilePath;
     
+    JTextField[] scriptField;
+    Timer programTimer;
+    
     private static final int subNum = 2;
     private Sami[] subtitle;
 
@@ -56,6 +62,7 @@ public class PlayerMain {
     	JMenuBar menuBar = new JMenuBar();
     	JMenu fileMenu = new JMenu("Menu");
     	JMenuItem openMedia = new JMenuItem("Media Open");
+    	JMenuItem[] openSubtitle = new JMenuItem[subNum];
     	
     	openMedia.addActionListener(new ActionListener() {
     		JFileChooser chooser;
@@ -89,7 +96,38 @@ public class PlayerMain {
             }
         });
     	
+    	for(int i = 0; i < subNum; i++) {
+    		int num = i;
+    		openSubtitle[i] = new JMenuItem("Subtitle" + (num + 1) + " Open");
+        	openSubtitle[i].addActionListener(new ActionListener() {
+        		JFileChooser chooser;
+                public void actionPerformed(ActionEvent e) {
+                	chooser = new JFileChooser();
+                	FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                			"SMI Subtitle",
+                			"smi");
+                	chooser.setFileFilter(filter);
+                	
+                	int ret = chooser.showOpenDialog(null);
+                	if(ret != JFileChooser.APPROVE_OPTION) {
+                		//파일을 선택하지 않은 경우.
+                		return;
+                	}
+                	
+                	subtitleFilePath = chooser.getSelectedFile().getPath();
+                	try {
+    					subtitle[num] = new Sami(subtitleFilePath);
+    				} catch (IOException error) {
+            			//subtitle file doesn't exist;
+            			subtitle[num] = null;
+    				}
+                }
+            });
+    	}
+    	
     	fileMenu.add(openMedia);
+    	for(int i = 0; i < subNum; i++)
+    		fileMenu.add(openSubtitle[i]);
     	menuBar.add(fileMenu);
     	frame.setJMenuBar(menuBar);
     }
@@ -147,36 +185,10 @@ public class PlayerMain {
     
     JPanel createSubtitlePane(int num) {
     	JPanel subtitlePane = new JPanel();
-    	JButton openButton = new JButton("open" + (num + 1));
-        subtitlePane.add(new JLabel("script" + (num + 1)));
-        JTextField scriptField = new JTextField(100);
-        subtitlePane.add(scriptField);
-        subtitlePane.add(openButton);
-        
-        openButton.addActionListener(new ActionListener() {
-    		JFileChooser chooser;
-            public void actionPerformed(ActionEvent e) {
-            	chooser = new JFileChooser();
-            	FileNameExtensionFilter filter = new FileNameExtensionFilter(
-            			"SMI Subtitle",
-            			"smi");
-            	chooser.setFileFilter(filter);
-            	
-            	int ret = chooser.showOpenDialog(null);
-            	if(ret != JFileChooser.APPROVE_OPTION) {
-            		//파일을 선택하지 않은 경우.
-            		return;
-            	}
-            	
-            	subtitleFilePath = chooser.getSelectedFile().getPath();
-            	try {
-					subtitle[num] = new Sami(subtitleFilePath);
-				} catch (IOException error) {
-        			//subtitle file doesn't exist;
-        			subtitle[num] = null;
-				}
-            }
-        });
+    	subtitlePane.setLayout(new GridLayout());
+        scriptField[num] = new JTextField();
+        scriptField[num].setText("subtitle " + (num + 1));
+        subtitlePane.add(scriptField[num]);
         
         return subtitlePane;
     }
@@ -195,6 +207,7 @@ public class PlayerMain {
         });
         
         subtitle = new Sami[2];
+        scriptField = new JTextField[2];
         
         //create Menu Bar;
         createMenu();
@@ -221,5 +234,17 @@ public class PlayerMain {
 
         frame.setContentPane(contentPane);
         frame.setVisible(true);
+        
+        programTimer = new Timer(1, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	if(!mediaPlayerComponent.mediaPlayer().status().isPlaying()) return;
+            	for(int i = 0; i < subNum; i++) {
+            		if(subtitle[i] != null) {
+            			scriptField[i].setText(subtitle[i].getScript(mediaPlayerComponent.mediaPlayer().status().time()));
+            		}
+            	}
+            }
+        });
+        programTimer.start();
     }
 }

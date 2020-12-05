@@ -9,11 +9,12 @@ import java.io.IOException;
 public class Sami {
 	String filePath;
 	ArrayList<Script> scriptList;
+	int curIndex = 0;
 	
 	class Script{
-		int sync_start;
+		long sync_start;
 		String script;
-		public Script(int start, String text) {
+		public Script(long start, String text) {
 			sync_start = start;
 			script = convertToScript(text);
 		}
@@ -35,6 +36,36 @@ public class Sami {
         filePath = path;
         scriptList = new ArrayList<Script>();
 		parse();
+	}
+	
+	public String getScript(long time) {
+		if (scriptList.get(curIndex).sync_start <= time && time < scriptList.get(curIndex + 1).sync_start) {
+			return scriptList.get(curIndex).script;
+		}
+		else if(scriptList.get(curIndex + 1).sync_start <= time && time < scriptList.get(curIndex + 2).sync_start) {
+			curIndex++;
+			return scriptList.get(curIndex + 1).script;
+		}
+		
+		int lo = 1, hi = scriptList.size() - 2;
+		int mid = 0;
+		
+		while(lo <= hi) {
+			mid = (lo + hi)/2;
+			if(scriptList.get(mid).sync_start <= time) {
+				if(time < scriptList.get(mid + 1).sync_start) break;
+				lo = mid;
+			}
+			else {
+				if(time >= scriptList.get(mid - 1).sync_start) {
+					mid--;
+					break;
+				}
+				hi = mid;
+			}
+		}
+		
+		return scriptList.get(mid).script;
 	}
 	
 	public void parse() throws IOException {
@@ -68,6 +99,7 @@ public class Sami {
         	}
         	else text = text.concat(line);
         }
+        scriptList.add(new Script(Long.MAX_VALUE, " "));
         br.close();
         
         /* print all scripts for test
