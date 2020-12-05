@@ -69,5 +69,12 @@ public class Sami {
         	else text = text.concat(line);
         }
         br.close();
+        
+        /* print all scripts for test
+        for(int i = 0; i < scriptList.size(); i++) {
+        	System.out.println(scriptList.get(i).sync_start);
+        	System.out.println(scriptList.get(i).script);
+        }
+        */
 	}
 }
