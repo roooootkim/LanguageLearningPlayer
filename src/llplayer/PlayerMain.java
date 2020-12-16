@@ -2,18 +2,12 @@ package llplayer;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,128 +15,113 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent;
 
 public class PlayerMain {
-
 	static PlayerMain thisApp;
 
 	private final JFrame frame;
 
 	private final EmbeddedMediaPlayerComponent mediaPlayerComponent;
-
-	private JButton playButton;
-	private JButton pauseButton;
-	private JButton stopButton;
-	private JButton rewindButton;
-	private JButton skipButton;
     
 	private String mediaFilePath;
     private String subtitleFilePath;
     
-    JTextField[] scriptField;
-    Timer programTimer;
+    private JTextField[] scriptField;
+    private Timer programTimer;
     
     private static final int subNum = 2;
     private Sami[] subtitle;
+    
+    private boolean apiKeyEntered = false;
+    private String api_id = "";
+    private String api_key = "";
 
     public static void main(String[] args) {
         thisApp = new PlayerMain();
     }
-    
-    void createMenu() {
-    	JMenuBar menuBar = new JMenuBar();
-    	JMenu fileMenu = new JMenu("Menu");
-    	JMenuItem openMedia = new JMenuItem("Media Open");
-    	JMenuItem[] openSubtitle = new JMenuItem[subNum];
-    	
-    	openMedia.addActionListener(new ActionListener() {
-    		JFileChooser chooser;
-            public void actionPerformed(ActionEvent e) {
-            	chooser = new JFileChooser();
-            	FileNameExtensionFilter filter = new FileNameExtensionFilter(
-            			"MP4 & AVI Media",
-            			"mp4", "avi");
-            	chooser.setFileFilter(filter);
-            	
-            	int ret = chooser.showOpenDialog(null);
-            	if(ret != JFileChooser.APPROVE_OPTION) {
-            		//파일을 선택하지 않은 경우.
-            		return;
-            	}
-            	
-            	mediaFilePath = chooser.getSelectedFile().getPath();
-                mediaPlayerComponent.mediaPlayer().media().play(mediaFilePath);
-                
-                //check default subtitle file.
-                subtitle[0] = null;
-                subtitle[1] = null;
-                
-                subtitleFilePath = mediaFilePath.substring(0, mediaFilePath.length() - 3).concat("smi");
-                try {
-					subtitle[0] = new Sami(subtitleFilePath);
-        		} catch (IOException error) {
-        			//default subtitle file doesn't exist;
-        			subtitle[0] = null;
-        		}
+
+    public PlayerMain() {
+        frame = new JFrame("Language Learning Player");
+        frame.setBounds(100, 100, 1280, 720);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                mediaPlayerComponent.release();
+                System.exit(0);
             }
         });
-    	
-    	for(int i = 0; i < subNum; i++) {
-    		int num = i;
-    		openSubtitle[i] = new JMenuItem("Subtitle" + (num + 1) + " Open");
-        	openSubtitle[i].addActionListener(new ActionListener() {
-        		JFileChooser chooser;
-                public void actionPerformed(ActionEvent e) {
-                	chooser = new JFileChooser();
-                	FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                			"SMI Subtitle",
-                			"smi");
-                	chooser.setFileFilter(filter);
-                	
-                	int ret = chooser.showOpenDialog(null);
-                	if(ret != JFileChooser.APPROVE_OPTION) {
-                		//파일을 선택하지 않은 경우.
-                		return;
-                	}
-                	
-                	subtitleFilePath = chooser.getSelectedFile().getPath();
-                	try {
-    					subtitle[num] = new Sami(subtitleFilePath);
-    				} catch (IOException error) {
-            			//subtitle file doesn't exist;
-            			subtitle[num] = null;
-    				}
-                }
-            });
-    	}
-    	
-    	fileMenu.add(openMedia);
-    	for(int i = 0; i < subNum; i++)
-    		fileMenu.add(openSubtitle[i]);
-    	menuBar.add(fileMenu);
-    	frame.setJMenuBar(menuBar);
+        
+        subtitle = new Sami[2];
+        scriptField = new JTextField[2];
+        
+        JPanel contentPane = new JPanel();
+        contentPane.setLayout(new BorderLayout());
+
+        mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
+        contentPane.add(mediaPlayerComponent, BorderLayout.CENTER);
+        
+        JPanel southPane = new JPanel();
+        southPane.setLayout(new GridLayout(0, 1));
+        
+        for(int i = 0; i < subNum; i++) {
+            JPanel subtitlePane = createSubtitlePane(i);
+            southPane.add(subtitlePane);
+        }
+        
+        JPanel controlsPane = createControlsPane();
+        southPane.add(controlsPane);
+        contentPane.add(southPane, BorderLayout.SOUTH);
+        
+        JPanel menuPane = createMenu();
+        contentPane.add(menuPane, BorderLayout.NORTH);
+        
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setPreferredSize(new Dimension(200, 0));
+        JPanel dictionaryPane = new JPanel();
+        JPanel wordBookPane = new JPanel();
+        tabbedPane.addTab("Dictionary", dictionaryPane);
+        tabbedPane.addTab("Word Book", wordBookPane);
+        contentPane.add(tabbedPane, BorderLayout.EAST);
+        
+        frame.setContentPane(contentPane);
+        frame.setVisible(true);
+        
+        programTimer = new Timer(1, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	if(!mediaPlayerComponent.mediaPlayer().status().isPlaying()) return;
+            	for(int i = 0; i < subNum; i++) {
+            		if(subtitle[i] != null) {
+            			scriptField[i].setText(subtitle[i].getScript(mediaPlayerComponent.mediaPlayer().status().time()));
+            		}
+            	}
+            }
+        });
+        programTimer.start();
     }
     
     JPanel createControlsPane() {
         JPanel controlsPane = new JPanel();
-        playButton = new JButton("Play");
+        FlowLayout fl = new FlowLayout();
+        fl.setAlignment(FlowLayout.LEFT);
+        controlsPane.setLayout(fl);
+        JButton playButton = new JButton("Play");
         controlsPane.add(playButton);
-        pauseButton = new JButton("Pause");
+        JButton pauseButton = new JButton("Pause");
         controlsPane.add(pauseButton);
-        stopButton = new JButton("Stop");
+        JButton stopButton = new JButton("Stop");
         controlsPane.add(stopButton);
-        rewindButton = new JButton("Rewind");
+        JButton rewindButton = new JButton("Rewind");
         controlsPane.add(rewindButton);
-        skipButton = new JButton("Skip");
+        JButton skipButton = new JButton("Skip");
         controlsPane.add(skipButton);
 
         playButton.addActionListener(new ActionListener() {
@@ -191,72 +170,156 @@ public class PlayerMain {
             	}
             }
         });
-        
+
         return controlsPane;
+    }
+    
+    JPanel createMenu() {
+        JPanel menuPane = new JPanel();
+        FlowLayout fl = new FlowLayout();
+        fl.setAlignment(FlowLayout.LEFT);
+        menuPane.setLayout(fl);
+        JLabel text = new JLabel("open");
+        menuPane.add(text);
+        JButton mediaButton = new JButton("Media");
+        menuPane.add(mediaButton);
+        JButton[] subtitleButton = new JButton[subNum];
+        for(int i = 0; i < subNum; i++) {
+        	subtitleButton[i] = new JButton("Subtitle" + (i + 1));
+        	menuPane.add(subtitleButton[i]);
+        }
+        JLabel text2 = new JLabel("Oxford Dictionaries api key: ");
+        menuPane.add(text2);
+        JButton dictionaryKeyButton = new JButton("Enter Key");
+        menuPane.add(dictionaryKeyButton);
+        
+        mediaButton.addActionListener(new ActionListener() {
+        	JFileChooser chooser;
+            public void actionPerformed(ActionEvent e) {
+                chooser = new JFileChooser();
+                FileNameExtensionFilter filter = new FileNameExtensionFilter(
+             			"MP4 & AVI Media",
+             			"mp4", "avi");
+             	chooser.setFileFilter(filter);
+             	
+             	int ret = chooser.showOpenDialog(null);
+             	if(ret != JFileChooser.APPROVE_OPTION) {
+             		//파일을 선택하지 않은 경우.
+             		return;
+             	}
+             	mediaFilePath = chooser.getSelectedFile().getPath();
+                mediaPlayerComponent.mediaPlayer().media().play(mediaFilePath);
+                 
+                //check default subtitle file.
+                for(int i = 0; i < subNum; i++) 
+                    subtitle[i] = null;
+                 
+                subtitleFilePath = mediaFilePath.substring(0, mediaFilePath.length() - 3).concat("smi");
+                try {
+                	subtitle[0] = new Sami(subtitleFilePath);
+         		} catch (IOException error) {
+         			//default subtitle file doesn't exist;
+         			subtitle[0] = null;
+         		}
+            }
+        });
+         
+        for(int i = 0; i < subNum; i++) {
+        	int num = i;
+        	subtitleButton[i].addActionListener(new ActionListener() {
+         		JFileChooser chooser;
+                 public void actionPerformed(ActionEvent e) {
+                 	chooser = new JFileChooser();
+                 	FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                 			"SMI Subtitle",
+                 			"smi");
+                 	chooser.setFileFilter(filter);
+                 	
+                 	int ret = chooser.showOpenDialog(null);
+                 	if(ret != JFileChooser.APPROVE_OPTION) {
+                 		//파일을 선택하지 않은 경우.
+                 		return;
+                 	}
+                 	
+                 	subtitleFilePath = chooser.getSelectedFile().getPath();
+                 	try {
+     					subtitle[num] = new Sami(subtitleFilePath);
+     				} catch (IOException error) {
+             			//subtitle file doesn't exist;
+             			subtitle[num] = null;
+     				}
+                 }
+        	});
+     	}
+        
+        dictionaryKeyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	 createInputWindow();
+            }
+        });
+        return menuPane;
     }
     
     JPanel createSubtitlePane(int num) {
     	JPanel subtitlePane = new JPanel();
     	subtitlePane.setLayout(new GridLayout());
         scriptField[num] = new JTextField();
+        scriptField[num].setHorizontalAlignment(JTextField.CENTER);
         scriptField[num].setText("subtitle " + (num + 1));
         subtitlePane.add(scriptField[num]);
         
         return subtitlePane;
     }
+    
+    JPanel createDictionaryPane() {
+    	JPanel dictionaryPane = new JPanel();
+    	return dictionaryPane;
+    }
+    
+    void createInputWindow() {
+    	JFrame inputKeyFrame = new JFrame("Key Input");
+    	int width = 250;
+    	int height = 150;
+        inputKeyFrame.setBounds(frame.getX() + (frame.getWidth()/ 2) - (width / 2) , frame.getY() + (frame.getHeight() / 2) - (height / 2), width, height);
+        inputKeyFrame.setResizable(false);
+        
+        JPanel pane = new JPanel();
+        pane.setLayout(new GridLayout(0, 1));
+        
+        JPanel idPane = new JPanel();
+        JLabel idLabel = new JLabel("API ID:");
+        idPane.add(idLabel);
+        JTextField idText = new JTextField(10);
+        idText.setText(api_id);
+        idPane.add(idText);
+        
+        JPanel keyPane = new JPanel();
+        JLabel keyLabel = new JLabel("API KEY:");
+        idText.setText(api_key);
+        keyPane.add(keyLabel);
+        JTextField keyText = new JTextField(10);
+        keyPane.add(keyText);
 
-    public PlayerMain() {
-        frame = new JFrame("Language Learning Player");
-        frame.setBounds(100, 100, 1280, 720);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+        JPanel buttonPane = new JPanel();
+        JButton enterButton = new JButton("Enter");
+        buttonPane.add(enterButton);
 
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                mediaPlayerComponent.release();
-                System.exit(0);
-            }
-        });
+        pane.add(idPane);
+        pane.add(keyPane);
+        pane.add(buttonPane);
         
-        subtitle = new Sami[2];
-        scriptField = new JTextField[2];
+        inputKeyFrame.setContentPane(pane);
+        inputKeyFrame.setVisible(true);
         
-        //create Menu Bar;
-        createMenu();
-        
-        JPanel contentPane = new JPanel();
-        contentPane.setLayout(new BorderLayout());
-
-        mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
-        contentPane.add(mediaPlayerComponent, BorderLayout.CENTER);
-        
-        JPanel southPane = new JPanel();
-        southPane.setLayout(new GridLayout(0, 1));
-        
-        for(int i = 0; i < subNum; i++) {
-            JPanel subtitlePane = createSubtitlePane(i);
-            southPane.add(subtitlePane);
-        }
-        
-        JPanel controlsPane = createControlsPane();
-        southPane.add(controlsPane);
-        
-        
-        contentPane.add(southPane, BorderLayout.SOUTH);
-
-        frame.setContentPane(contentPane);
-        frame.setVisible(true);
-        
-        programTimer = new Timer(1, new ActionListener() {
+        enterButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	if(!mediaPlayerComponent.mediaPlayer().status().isPlaying()) return;
-            	for(int i = 0; i < subNum; i++) {
-            		if(subtitle[i] != null) {
-            			scriptField[i].setText(subtitle[i].getScript(mediaPlayerComponent.mediaPlayer().status().time()));
-            		}
-            	}
+            	api_id = idText.getText();
+            	api_key = keyText.getText();
+            	apiKeyEntered = true;
+            	System.out.println(api_id);
+            	System.out.println(api_key);
             }
         });
-        programTimer.start();
     }
 }
