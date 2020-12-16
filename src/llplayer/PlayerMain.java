@@ -13,6 +13,9 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -21,6 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -36,7 +40,8 @@ public class PlayerMain {
     
 	private String mediaFilePath;
     private String subtitleFilePath;
-    
+
+    private JSlider positionSlider;
     private static final int subNum = 2;
     private Subtitles[] subtitle = new Subtitles[2];
     private JTextField[] scriptField = new JTextField[2];
@@ -75,6 +80,13 @@ public class PlayerMain {
         
         JPanel southPane = new JPanel();
         southPane.setLayout(new GridLayout(0, 1));
+
+        float positionMax = 1000.0f;
+        positionSlider = new JSlider();
+        positionSlider.setMinimum(0);
+        positionSlider.setMaximum((int) positionMax);
+        positionSlider.setValue(0);
+        southPane.add(positionSlider);
         
         for(int i = 0; i < subNum; i++) {
             JPanel subtitlePane = createSubtitlePane(i);
@@ -99,12 +111,46 @@ public class PlayerMain {
         frame.setContentPane(contentPane);
         frame.setVisible(true);
         
+        positionSlider.addMouseListener(new MouseAdapter() {
+            boolean mousePressedPlaying = false;
+            public void mousePressed(MouseEvent e) {
+                if(mediaPlayerComponent.mediaPlayer().status().isPlaying()) {
+                    mediaPlayerComponent.mediaPlayer().controls().pause();
+                    mousePressedPlaying = true;
+                }
+            	SetSliderPosition();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            	SetSliderPosition();
+                if(mousePressedPlaying) {
+                    mousePressedPlaying = false;
+                    mediaPlayerComponent.mediaPlayer().controls().play();
+                }
+            }
+            
+            public void SetSliderPosition() {
+                if(!mediaPlayerComponent.mediaPlayer().status().isSeekable()) {
+                    return;
+                }
+                float positionValue = positionSlider.getValue() / positionMax;
+                // Avoid end of file freeze-up
+                if(positionValue > 0.99f) {
+                    positionValue = 0.99f;
+                }
+                mediaPlayerComponent.mediaPlayer().controls().setPosition(positionValue);
+            }
+        });
+        
         programTimer = new Timer(1, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
             	if(!mediaPlayerComponent.mediaPlayer().status().isPlaying()) return;
             	for(int i = 0; i < subNum; i++) {
             		if(subtitle[i] != null) {
             			scriptField[i].setText(subtitle[i].getScript(mediaPlayerComponent.mediaPlayer().status().time()));
+            			int pos = (int)(mediaPlayerComponent.mediaPlayer().status().position() * positionMax);
+            			positionSlider.setValue((int) pos);
             		}
             	}
             }
@@ -145,6 +191,7 @@ public class PlayerMain {
         stopButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+            	positionSlider.setValue(0);
                 mediaPlayerComponent.mediaPlayer().controls().stop();
             }
         });
