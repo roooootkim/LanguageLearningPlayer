@@ -143,14 +143,13 @@ public class Subtitles {
 	public void parseSRT() throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filePath));
 	    String line;
-	    int index = 1;
 	    String[] time;
 	    long[] start = new long[2];
+	    String script;
 	    scriptList.add(new Script(0, ""));
 	    while((line = br.readLine()) != null) {
 	    	if(line.isEmpty() || line.isBlank()) continue;
-	    	else if(line.equals("" + index)) {
-	    		index++;
+	    	else {
 	    		line = br.readLine();
 	    		time = line.split("-->");
 	    		for(int i = 0; i < 2; i++) {
@@ -164,19 +163,20 @@ public class Subtitles {
 	    			min += hour * 60;
 	    			start[i] += min * 60000;
 	    		}
-	    		line = br.readLine();
-	    		scriptList.add(new Script(start[0], line));
+	    		script = "";
+	    		
+	    		while(true) {
+		    		line = br.readLine();
+		    		if(!line.isEmpty() && !line.isBlank())
+		    			script += line;
+		    		else break;
+	    		}
+	    		
+	    		scriptList.add(new Script(start[0], script));
 	    		scriptList.add(new Script(start[1], ""));
 	    	}
 	    }
 	    scriptList.add(new Script(Long.MAX_VALUE, ""));
 	    br.close();
-
-        /* print all scripts for test
-        for(int i = 0; i < scriptList.size(); i++) {
-        	System.out.println(scriptList.get(i).sync_start);
-        	System.out.println(scriptList.get(i).script);
-        }
-        */
 	}
 }

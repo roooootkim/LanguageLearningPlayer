@@ -25,7 +25,6 @@ public class Dictionary{
 		JSONParser parser = new JSONParser();
 		String lexCat = new String();
 		String def = new String();
-	    String[] ret = new String[2]; // ret[0] -> lexcialCategory, ret[1] -> definition
 	    try{
 	        final String url = getRequest(buildURL(word));
 	        final JSONObject jsonObj = (JSONObject)parser.parse(url);

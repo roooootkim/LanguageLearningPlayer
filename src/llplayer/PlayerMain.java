@@ -57,6 +57,7 @@ public class PlayerMain {
     private String dict_output = "Please enter Oxford Dictionary API ID & KEY";
     
     private Dictionary dictionary = new Dictionary();
+    private WordBook wordBook = new WordBook();
 
     public static void main(String[] args) {
         thisApp = new PlayerMain();
@@ -66,6 +67,11 @@ public class PlayerMain {
         frame = new JFrame("Language Learning Player");
         frame.setBounds(100, 100, 1280, 720);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter() {
+        	public void windowClosing(WindowEvent e) {
+        		wordBook.save();
+        	}
+        });
 
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -213,7 +219,7 @@ public class PlayerMain {
             	else {
                 	long prevTime = subtitle[0].getPrevTime();
                 	long curTime = mediaPlayerComponent.mediaPlayer().status().time();
-                    mediaPlayerComponent.mediaPlayer().controls().skipTime(prevTime - curTime + 1);
+                    mediaPlayerComponent.mediaPlayer().controls().skipTime(prevTime - curTime);
                     for(int i = 0; i < subNum; i++) {
                     	if(subtitle[i] != null)
                     		scriptField[i].setText(subtitle[i].getScript(mediaPlayerComponent.mediaPlayer().status().time()));
@@ -230,7 +236,7 @@ public class PlayerMain {
             	else {
                 	long nextTime = subtitle[0].getNextTime();
                 	long curTime = mediaPlayerComponent.mediaPlayer().status().time();
-                    mediaPlayerComponent.mediaPlayer().controls().skipTime(nextTime - curTime + 1);
+                    mediaPlayerComponent.mediaPlayer().controls().skipTime(nextTime - curTime);
                     for(int i = 0; i < subNum; i++) {
                     	if(subtitle[i] != null)
                     		scriptField[i].setText(subtitle[i].getScript(mediaPlayerComponent.mediaPlayer().status().time()));
@@ -349,7 +355,6 @@ public class PlayerMain {
     
     JPanel createDictionaryPane() {
     	JPanel dictionaryPane = new JPanel();
-    	//GridBagLayout grid = new GridBagLayout();
     	dictionaryPane.setLayout(new GridBagLayout());
     	GridBagConstraints gbc = new GridBagConstraints();
     	JTextField input = new JTextField(dict_input);
@@ -374,7 +379,7 @@ public class PlayerMain {
     	
     	input.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	output.setText(dictionary.search(input.getText()));
+            	output.setText(Dictionary.search(input.getText()));
             }
         });
     	
@@ -383,7 +388,61 @@ public class PlayerMain {
 
     JPanel createWordBook() {
     	JPanel wordBookPane = new JPanel();
+    	wordBookPane.setLayout(new GridBagLayout());
+    	GridBagConstraints gbc = new GridBagConstraints();
     	
+    	JTextArea bookArea = new JTextArea();
+    	bookArea.setLineWrap(true);
+    	bookArea.setWrapStyleWord(true);
+    	bookArea.setEditable(false);
+    	JTextField inputField = new JTextField();
+    	JLabel discript =  new JLabel("Enter: add/delete word");
+
+    	inputField.setText("");
+    	for(String word : wordBook.getList()) {
+    		bookArea.append(word + "\n");
+    	}
+    	
+    	gbc.fill = GridBagConstraints.BOTH;
+
+    	gbc.gridx = 0;
+    	gbc.gridy = 0;
+    	gbc.weightx = 3.0;
+
+    	wordBookPane.add(inputField, gbc);
+    	
+    	gbc.gridx = 0;
+    	gbc.gridy = 1;
+    	gbc.weightx = 3.0;
+
+    	wordBookPane.add(discript, gbc);
+
+    	gbc.gridx = 0;
+    	gbc.gridy = 2;
+    	gbc.weighty = 1.0;
+    	wordBookPane.add(new JScrollPane(bookArea), gbc);
+    	
+    	inputField.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	wordBook.input(inputField.getText());
+            	inputField.setText("");
+            	bookArea.setText("");
+            	for(String word : wordBook.getList()) {
+            		bookArea.append(word + "\n");
+            	}
+            }
+        });
+    	
+    	/*
+    	JButton tmp = new JButton("test Button");
+    	wordBookPane.add(tmp);
+
+    	tmp.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	wordBook.input("test word");
+            }
+        });
+        */
     	return wordBookPane;
     }
     
