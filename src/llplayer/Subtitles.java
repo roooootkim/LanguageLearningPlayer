@@ -3,7 +3,6 @@ package llplayer;
 import java.util.ArrayList;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -157,11 +156,12 @@ public class Subtitles {
 	    			time[i] = time[i].trim();
 	    			long hour = (time[i].charAt(0) - '0') * 10 + (time[i].charAt(1) - '0');
 	    			long min = (time[i].charAt(3) - '0') * 10 + (time[i].charAt(4) - '0');
-	    			time[i] = time[i].substring(6);
-	    			time[i] = time[i].replaceAll(",", "");
+	    			long second = (time[i].charAt(6) - '0') * 10 + (time[i].charAt(7) - '0');
+	    			time[i] = time[i].substring(9);
 	    			start[i] += Long.valueOf(time[i]);
 	    			min += hour * 60;
-	    			start[i] += min * 60000;
+	    			second += min * 60;
+	    			start[i] += second * 1000;
 	    		}
 	    		script = "";
 	    		
@@ -178,5 +178,10 @@ public class Subtitles {
 	    }
 	    scriptList.add(new Script(Long.MAX_VALUE, ""));
 	    br.close();
+	    
+        for(int i = 0; i < scriptList.size(); i++) {
+        	System.out.println(scriptList.get(i).sync_start);
+        	System.out.println(scriptList.get(i).script);
+        }
 	}
 }

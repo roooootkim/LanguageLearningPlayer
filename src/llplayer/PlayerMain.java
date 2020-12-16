@@ -436,7 +436,6 @@ public class PlayerMain {
     	/*
     	JButton tmp = new JButton("test Button");
     	wordBookPane.add(tmp);
-
     	tmp.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
             	wordBook.input("test word");
