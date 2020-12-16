@@ -3,6 +3,8 @@ package llplayer;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.BorderLayout;
@@ -29,6 +31,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import uk.co.caprica.vlcj.player.base.LibVlcConst;
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent;
 
 public class PlayerMain {
@@ -173,6 +176,12 @@ public class PlayerMain {
         controlsPane.add(rewindButton);
         JButton skipButton = new JButton("Skip");
         controlsPane.add(skipButton);
+        JSlider volumeSlider = new JSlider();
+        volumeSlider.setOrientation(JSlider.HORIZONTAL);
+        volumeSlider.setMinimum(LibVlcConst.MIN_VOLUME);
+        volumeSlider.setMaximum(LibVlcConst.MAX_VOLUME);
+        volumeSlider.setPreferredSize(new Dimension(100, 20));
+        controlsPane.add(volumeSlider);
 
         playButton.addActionListener(new ActionListener() {
             @Override
@@ -227,6 +236,14 @@ public class PlayerMain {
                     		scriptField[i].setText(subtitle[i].getScript(mediaPlayerComponent.mediaPlayer().status().time()));
                     }
             	}
+            }
+        });
+        
+        volumeSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                JSlider source = (JSlider)e.getSource();
+                mediaPlayerComponent.mediaPlayer().audio().setVolume(source.getValue());
             }
         });
 
