@@ -8,8 +8,6 @@ import  javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import  java.io.InputStreamReader;
 import  java.net.URL;
-import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 
 public class Dictionary{
     private static String app_id ;

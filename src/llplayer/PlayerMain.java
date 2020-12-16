@@ -6,7 +6,6 @@ import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -97,7 +96,7 @@ public class PlayerMain {
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setPreferredSize(new Dimension(200, 0));
         JPanel dictionaryPane = createDictionaryPane();
-        JPanel wordBookPane = new JPanel();
+        JPanel wordBookPane = createWordBook();
         tabbedPane.addTab("Dictionary", dictionaryPane);
         tabbedPane.addTab("Word Book", wordBookPane);
         contentPane.add(tabbedPane, BorderLayout.EAST);
@@ -163,7 +162,11 @@ public class PlayerMain {
             	else {
                 	long prevTime = subtitle[0].getPrevTime();
                 	long curTime = mediaPlayerComponent.mediaPlayer().status().time();
-                    mediaPlayerComponent.mediaPlayer().controls().skipTime(prevTime - curTime);
+                    mediaPlayerComponent.mediaPlayer().controls().skipTime(prevTime - curTime + 1);
+                    for(int i = 0; i < subNum; i++) {
+                    	if(subtitle[i] != null)
+                    		scriptField[i].setText(subtitle[i].getScript(mediaPlayerComponent.mediaPlayer().status().time()));
+                    }
             	}
             }
         });
@@ -176,7 +179,11 @@ public class PlayerMain {
             	else {
                 	long nextTime = subtitle[0].getNextTime();
                 	long curTime = mediaPlayerComponent.mediaPlayer().status().time();
-                    mediaPlayerComponent.mediaPlayer().controls().skipTime(nextTime - curTime);
+                    mediaPlayerComponent.mediaPlayer().controls().skipTime(nextTime - curTime + 1);
+                    for(int i = 0; i < subNum; i++) {
+                    	if(subtitle[i] != null)
+                    		scriptField[i].setText(subtitle[i].getScript(mediaPlayerComponent.mediaPlayer().status().time()));
+                    }
             	}
             }
         });
@@ -314,7 +321,12 @@ public class PlayerMain {
     	
     	return dictionaryPane;
     }
-    
+
+    JPanel createWordBook() {
+    	JPanel wordBookPane = new JPanel();
+    	
+    	return wordBookPane;
+    }
     void createInputWindow() {
     	JFrame inputKeyFrame = new JFrame("Key Input");
     	int width = 250;
