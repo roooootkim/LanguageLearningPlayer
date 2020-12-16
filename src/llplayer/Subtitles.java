@@ -178,10 +178,5 @@ public class Subtitles {
 	    }
 	    scriptList.add(new Script(Long.MAX_VALUE, ""));
 	    br.close();
-	    
-        for(int i = 0; i < scriptList.size(); i++) {
-        	System.out.println(scriptList.get(i).sync_start);
-        	System.out.println(scriptList.get(i).script);
-        }
 	}
 }
