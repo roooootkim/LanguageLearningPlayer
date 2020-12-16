@@ -37,15 +37,13 @@ public class PlayerMain {
 	private String mediaFilePath;
     private String subtitleFilePath;
     
-    private JTextField[] scriptField;
-    private Timer programTimer;
-    
     private static final int subNum = 2;
-    private Sami[] subtitle;
+    private Subtitles[] subtitle = new Subtitles[2];
+    private JTextField[] scriptField = new JTextField[2];
+    private Timer programTimer;
     
     private String api_id = "";
     private String api_key = "";
-    private boolean apiKeyEntered = false;
     
     private String dict_input = "";
     private String dict_output = "Please enter Oxford Dictionary API ID & KEY";
@@ -68,9 +66,6 @@ public class PlayerMain {
                 System.exit(0);
             }
         });
-        
-        subtitle = new Sami[2];
-        scriptField = new JTextField[2];
         
         JPanel contentPane = new JPanel();
         contentPane.setLayout(new BorderLayout());
@@ -233,7 +228,7 @@ public class PlayerMain {
                  
                 subtitleFilePath = mediaFilePath.substring(0, mediaFilePath.length() - 3).concat("smi");
                 try {
-                	subtitle[0] = new Sami(subtitleFilePath);
+                	subtitle[0] = new Subtitles(subtitleFilePath);
          		} catch (IOException error) {
          			//default subtitle file doesn't exist;
          			subtitle[0] = null;
@@ -248,8 +243,8 @@ public class PlayerMain {
                  public void actionPerformed(ActionEvent e) {
                  	chooser = new JFileChooser();
                  	FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                 			"SMI Subtitle",
-                 			"smi");
+                 			"SMI & SRT Subtitle",
+                 			"smi", "srt");
                  	chooser.setFileFilter(filter);
                  	
                  	int ret = chooser.showOpenDialog(null);
@@ -260,7 +255,7 @@ public class PlayerMain {
                  	
                  	subtitleFilePath = chooser.getSelectedFile().getPath();
                  	try {
-     					subtitle[num] = new Sami(subtitleFilePath);
+     					subtitle[num] = new Subtitles(subtitleFilePath);
      				} catch (IOException error) {
              			//subtitle file doesn't exist;
              			subtitle[num] = null;
@@ -327,6 +322,7 @@ public class PlayerMain {
     	
     	return wordBookPane;
     }
+    
     void createInputWindow() {
     	JFrame inputKeyFrame = new JFrame("Key Input");
     	int width = 250;
@@ -368,7 +364,6 @@ public class PlayerMain {
             	api_id = idText.getText();
             	api_key = keyText.getText();
             	dictionary.setKey(api_id, api_key);
-            	apiKeyEntered = true;
             	inputKeyFrame.setVisible(false);
             }
         });

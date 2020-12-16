@@ -3,10 +3,11 @@ package llplayer;
 import java.util.ArrayList;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class Sami {
+public class Subtitles {
 	String filePath;
 	ArrayList<Script> scriptList;
 	int curIndex = 0;
@@ -32,7 +33,7 @@ public class Sami {
 		}
 	}
 	
-	public Sami(String path) throws IOException {
+	public Subtitles(String path) throws IOException {
         filePath = path;
         scriptList = new ArrayList<Script>();
 		parse();
@@ -93,6 +94,11 @@ public class Sami {
 	}
 	
 	public void parse() throws IOException {
+		if(filePath.endsWith("smi")) parseSMI();
+		else if(filePath.endsWith("srt")) parseSRT();
+	}
+	
+	public void parseSMI() throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filePath));
         String line;
         
@@ -126,6 +132,46 @@ public class Sami {
         scriptList.add(new Script(Long.MAX_VALUE, ""));
         br.close();
         
+        /* print all scripts for test
+        for(int i = 0; i < scriptList.size(); i++) {
+        	System.out.println(scriptList.get(i).sync_start);
+        	System.out.println(scriptList.get(i).script);
+        }
+        */
+	}
+	
+	public void parseSRT() throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(filePath));
+	    String line;
+	    int index = 1;
+	    String[] time;
+	    long[] start = new long[2];
+	    scriptList.add(new Script(0, ""));
+	    while((line = br.readLine()) != null) {
+	    	if(line.isEmpty() || line.isBlank()) continue;
+	    	else if(line.equals("" + index)) {
+	    		index++;
+	    		line = br.readLine();
+	    		time = line.split("-->");
+	    		for(int i = 0; i < 2; i++) {
+	    			start[i] = 0;
+	    			time[i] = time[i].trim();
+	    			long hour = (time[i].charAt(0) - '0') * 10 + (time[i].charAt(1) - '0');
+	    			long min = (time[i].charAt(3) - '0') * 10 + (time[i].charAt(4) - '0');
+	    			time[i] = time[i].substring(6);
+	    			time[i] = time[i].replaceAll(",", "");
+	    			start[i] += Long.valueOf(time[i]);
+	    			min += hour * 60;
+	    			start[i] += min * 60000;
+	    		}
+	    		line = br.readLine();
+	    		scriptList.add(new Script(start[0], line));
+	    		scriptList.add(new Script(start[1], ""));
+	    	}
+	    }
+	    scriptList.add(new Script(Long.MAX_VALUE, ""));
+	    br.close();
+
         /* print all scripts for test
         for(int i = 0; i < scriptList.size(); i++) {
         	System.out.println(scriptList.get(i).sync_start);
