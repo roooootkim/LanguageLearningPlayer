@@ -11,16 +11,22 @@ import  java.net.URL;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-public class Dictionary extends UnicastRemoteObject{
+public class Dictionary{
     private static String app_id ;
     private static String app_key;
     
-	protected Dictionary(String id, String key) throws RemoteException {
+	protected Dictionary(){
+	}
+	
+	public void setKey(String id, String key) {
 		app_id = id;
 		app_key = key;
 	}
-	public static String[] search(String word){
+	
+	public static String search(String word){
 		JSONParser parser = new JSONParser();
+		String lexCat = new String();
+		String def = new String();
 	    String[] ret = new String[2]; // ret[0] -> lexcialCategory, ret[1] -> definition
 	    try{
 	        final String url = getRequest(buildURL(word));
@@ -36,7 +42,7 @@ public class Dictionary extends UnicastRemoteObject{
 			        JSONArray entries = (JSONArray) ((JSONObject)lexicalEntries.get(j)).get("entries");
 			        if(entries == null) continue;
 	        		if(lexicalCategory != null)
-	        			ret[0] = lexicalCategory.get("text").toString();
+	        			lexCat = lexicalCategory.get("text").toString();
 	        		for(int k = 0; k < entries.size(); k++) {
 				        JSONArray senses = (JSONArray) ((JSONObject)entries.get(k)).get("senses");
 				        if(senses == null) continue;
@@ -45,7 +51,7 @@ public class Dictionary extends UnicastRemoteObject{
 					        if(definitions == null) continue;
 					        
 					        //한 개만 출력
-		        			ret[1] = definitions.get(0).toString();
+		        			def = definitions.get(0).toString();
 					        i = results.size() + 1;
 					        j = lexicalEntries.size() + 1;
 					        k = entries.size() + 1;
@@ -63,9 +69,9 @@ public class Dictionary extends UnicastRemoteObject{
 	        
 	    }
 	    catch (Exception e){
-	        ret = null;
+	        return "no result (or check your API ID & Key";
 	    }
-	    return ret;
+	    return lexCat + '\n' + def;
 	}
 	
 	private static String buildURL(final  String word){
@@ -91,7 +97,7 @@ public class Dictionary extends UnicastRemoteObject{
 	    	return stringBuilder.toString();
 	    }
 	    catch (Exception e){
-	    	e.printStackTrace();
+	    	//e.printStackTrace();
 	    	return e.toString();
 	    }
 	}

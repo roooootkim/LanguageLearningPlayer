@@ -6,8 +6,11 @@ import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,7 +21,9 @@ import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent;
@@ -39,9 +44,14 @@ public class PlayerMain {
     private static final int subNum = 2;
     private Sami[] subtitle;
     
-    private boolean apiKeyEntered = false;
     private String api_id = "";
     private String api_key = "";
+    private boolean apiKeyEntered = false;
+    
+    private String dict_input = "";
+    private String dict_output = "Please enter Oxford Dictionary API ID & KEY";
+    
+    private Dictionary dictionary = new Dictionary();
 
     public static void main(String[] args) {
         thisApp = new PlayerMain();
@@ -86,7 +96,7 @@ public class PlayerMain {
         
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setPreferredSize(new Dimension(200, 0));
-        JPanel dictionaryPane = new JPanel();
+        JPanel dictionaryPane = createDictionaryPane();
         JPanel wordBookPane = new JPanel();
         tabbedPane.addTab("Dictionary", dictionaryPane);
         tabbedPane.addTab("Word Book", wordBookPane);
@@ -273,6 +283,35 @@ public class PlayerMain {
     
     JPanel createDictionaryPane() {
     	JPanel dictionaryPane = new JPanel();
+    	//GridBagLayout grid = new GridBagLayout();
+    	dictionaryPane.setLayout(new GridBagLayout());
+    	GridBagConstraints gbc = new GridBagConstraints();
+    	JTextField input = new JTextField(dict_input);
+    	JTextArea output = new JTextArea(dict_output);
+    	output.setLineWrap(true);
+    	output.setWrapStyleWord(true);
+    	output.setEditable(false);
+    	
+    	gbc.fill = GridBagConstraints.BOTH;
+
+    	gbc.gridx = 0;
+    	gbc.gridy = 0;
+    	gbc.weightx = 3.0;
+    	
+    	dictionaryPane.add(input, gbc);
+    	
+    	gbc.gridx = 0;
+    	gbc.gridy = 1;
+    	gbc.weighty = 1.0;
+    	
+    	dictionaryPane.add(new JScrollPane(output), gbc);
+    	
+    	input.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	output.setText(dictionary.search(input.getText()));
+            }
+        });
+    	
     	return dictionaryPane;
     }
     
@@ -316,9 +355,9 @@ public class PlayerMain {
             public void actionPerformed(ActionEvent e) {
             	api_id = idText.getText();
             	api_key = keyText.getText();
+            	dictionary.setKey(api_id, api_key);
             	apiKeyEntered = true;
-            	System.out.println(api_id);
-            	System.out.println(api_key);
+            	inputKeyFrame.setVisible(false);
             }
         });
     }
