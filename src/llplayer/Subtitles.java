@@ -1,3 +1,15 @@
+/*
+ * Subtitles.java
+ * 작성자: 김근호
+ * 불러온 자막파일을 파싱 후 데이터를 보관
+ * 
+ * getScript(long time): 현재 읽고있는 자막 가져오기
+ * getPrevTime(): 바로 전에 읽었던 자막의 시간 가져오기
+ * getNextTime(): 다음 읽을 자막의 시간 가져오기
+ * parse(): 자막 파싱함수
+ * parseSMI(): smi파일을 파싱 후 데이터 저장
+ * parseSRT(): srt파일을 파싱 후 데이터 저장
+ */
 package llplayer;
 
 import java.util.ArrayList;

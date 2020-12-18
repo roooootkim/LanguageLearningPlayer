@@ -1,3 +1,14 @@
+/*
+ * Dictionary.java
+ * 사전 기능을 구현한 클래스
+ * 작성자 김범철
+ * 
+ * 메소드 목록
+ * setKey(String id, String key): API id와 key값을 받아서 멤버변수로 저장.
+ * search(String word): api url을 사용하여 검색 후, JSON파일을 파싱하여 결과값을 반환.
+ * buildURL(final  String word): api에 요청하기 위한 url을 반환
+ * getRequest(String link): api key와 url을 합쳐서 최종적으로 request할 url을 반환.
+ */
 package llplayer;
 
 import org.json.simple.JSONArray;

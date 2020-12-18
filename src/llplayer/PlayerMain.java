@@ -1,3 +1,15 @@
+/*
+ * PlayerMain.java
+ * 작성자: 김근호
+ * 기본 동영상 플레이어
+ * 프로그램 GUI
+ * 
+ * createMenu(): 메뉴바 생성
+ * createSubtitlePane(): 자막 출력 공간 생성
+ * createDictionaryPane(): 사전 Panel 생성
+ * createWordBook(): 단어장 Panel 생성
+ * createInputWindow(): API Key 입력 윈도우 생성
+ */
 package llplayer;
 
 import javax.swing.JFrame;
